@@ -1,0 +1,24 @@
+<Project>
+  <PropertyGroup>
+    <!-- Copy this profile outside the generic repository and replace sample values. -->
+    <CliPackageId>AIHappey.Cli.Azure.Sample</CliPackageId>
+    <CliExecutableName>aihappey</CliExecutableName>
+    <CliAuthMode>Azure</CliAuthMode>
+    <!-- Supported values: InteractiveBrowser or DefaultAzure. -->
+    <CliAzureCredentialMode>InteractiveBrowser</CliAzureCredentialMode>
+    <!-- Keep this stable between releases and unique per deployment. -->
+    <CliTokenCacheName>aihappey-azure-sample</CliTokenCacheName>
+    <CliAiBaseUrl>https://ai.example.invalid/</CliAiBaseUrl>
+    <CliAgentsBaseUrl>https://agents.example.invalid/</CliAgentsBaseUrl>
+    <CliAiScope>api://replace-with-ai-app-id/AI.use</CliAiScope>
+    <CliAgentsScope>api://replace-with-agents-app-id/Agents.use</CliAgentsScope>
+    <CliAzureTenantId></CliAzureTenantId>
+    <CliAzureClientId></CliAzureClientId>
+    <CliFixedHeaders></CliFixedHeaders>
+    <CliAllowUrlOverride>false</CliAllowUrlOverride>
+    <CliAllowHeaderOverride>true</CliAllowHeaderOverride>
+    <CliAllowBearerOverride>false</CliAllowBearerOverride>
+    <CliAllowInteractiveLogin>true</CliAllowInteractiveLogin>
+    <CliAllowScopeOverride>true</CliAllowScopeOverride>
+  </PropertyGroup>
+</Project>

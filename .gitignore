@@ -1,0 +1,17 @@
+bin/
+obj/
+artifacts/
+*.user
+*.suo
+**/fakton.*.props
+
+# Local build output
+artifacts/
+
+# Secrets / local config
+.env
+.env.*
+*.secrets.json
+secrets.json
+appsettings.Local.json
+appsettings.Development.json

@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="src/AIHappey.Cli.Core/AIHappey.Cli.Core.csproj" />
+  <Project Path="src/AIHappey.Cli/AIHappey.Cli.csproj" />
+  <Project Path="tests/AIHappey.Cli.Tests/AIHappey.Cli.Tests.csproj" />
+</Solution>
+

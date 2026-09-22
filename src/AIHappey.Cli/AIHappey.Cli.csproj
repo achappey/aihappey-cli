@@ -1,0 +1,99 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackAsTool>true</PackAsTool>
+    <PackageOutputPath>$(MSBuildProjectDirectory)/../../artifacts/packages</PackageOutputPath>
+    <Version>1.0.0</Version>
+    <Authors>AIHappey</Authors>
+    <Description>A thin command-line client for the AIHappey AI and Agents HTTP APIs.</Description>
+    <PackageId Condition="'$(CliPackageId)' == ''">AIHappey.Cli.Sample</PackageId>
+    <PackageId Condition="'$(CliPackageId)' != ''">$(CliPackageId)</PackageId>
+    <AssemblyName Condition="'$(CliExecutableName)' == ''">aihappey</AssemblyName>
+    <AssemblyName Condition="'$(CliExecutableName)' != ''">$(CliExecutableName)</AssemblyName>
+    <ToolCommandName Condition="'$(CliExecutableName)' == ''">aihappey</ToolCommandName>
+    <ToolCommandName Condition="'$(CliExecutableName)' != ''">$(CliExecutableName)</ToolCommandName>
+  </PropertyGroup>
+
+  <Import Project="$(CliProfile)" Condition="'$(CliProfile)' != '' and Exists('$(CliProfile)')" />
+
+  <Target Name="ValidateCliProfile" BeforeTargets="CoreCompile;Pack;Publish">
+    <Error Condition="'$(CliProfile)' == ''" Text="CliProfile is required. Pass -p:CliProfile=profiles/header-auth/sample.props or another deployment profile." />
+    <Error Condition="!Exists('$(CliProfile)')" Text="CliProfile '$(CliProfile)' does not exist." />
+    <Error Condition="'$(CliAuthMode)' != 'Header' and '$(CliAuthMode)' != 'Azure'" Text="CliAuthMode must be Header or Azure." />
+    <Error Condition="'$(CliAuthMode)' == 'Azure' and '$(CliAzureCredentialMode)' != 'DefaultAzure' and '$(CliAzureCredentialMode)' != 'InteractiveBrowser'" Text="Azure profiles must set CliAzureCredentialMode to DefaultAzure or InteractiveBrowser." />
+    <Error Condition="'$(CliAuthMode)' == 'Azure' and '$(CliTokenCacheName)' == ''" Text="Azure profiles must set CliTokenCacheName to a stable, deployment-specific value." />
+    <Error Condition="'$(CliAuthMode)' == 'Azure' and '$(CliAzureCredentialMode)' == 'InteractiveBrowser' and '$(CliAllowInteractiveLogin)' != 'true'" Text="InteractiveBrowser requires CliAllowInteractiveLogin=true." />
+    <Error Condition="'$(CliAiBaseUrl)' == ''" Text="CliAiBaseUrl is required." />
+    <Error Condition="'$(CliAgentsBaseUrl)' == ''" Text="CliAgentsBaseUrl is required." />
+    <Error Condition="'$(CliPackageId)' == ''" Text="CliPackageId is required." />
+    <Error Condition="'$(CliExecutableName)' == ''" Text="CliExecutableName is required." />
+  </Target>
+
+  <ItemGroup>
+    <ProjectReference Include="../AIHappey.Cli.Core/AIHappey.Cli.Core.csproj" />
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>AIHappey.Cli.AuthMode</_Parameter1>
+      <_Parameter2>$(CliAuthMode)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>AIHappey.Cli.AzureCredentialMode</_Parameter1>
+      <_Parameter2>$(CliAzureCredentialMode)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>AIHappey.Cli.TokenCacheName</_Parameter1>
+      <_Parameter2>$(CliTokenCacheName)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>AIHappey.Cli.AiBaseUrl</_Parameter1>
+      <_Parameter2>$(CliAiBaseUrl)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>AIHappey.Cli.AgentsBaseUrl</_Parameter1>
+      <_Parameter2>$(CliAgentsBaseUrl)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>AIHappey.Cli.AiScope</_Parameter1>
+      <_Parameter2>$(CliAiScope)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>AIHappey.Cli.AgentsScope</_Parameter1>
+      <_Parameter2>$(CliAgentsScope)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>AIHappey.Cli.AzureTenantId</_Parameter1>
+      <_Parameter2>$(CliAzureTenantId)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>AIHappey.Cli.AzureClientId</_Parameter1>
+      <_Parameter2>$(CliAzureClientId)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>AIHappey.Cli.AllowUrlOverride</_Parameter1>
+      <_Parameter2>$(CliAllowUrlOverride)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>AIHappey.Cli.AllowHeaderOverride</_Parameter1>
+      <_Parameter2>$(CliAllowHeaderOverride)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>AIHappey.Cli.AllowBearerOverride</_Parameter1>
+      <_Parameter2>$(CliAllowBearerOverride)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>AIHappey.Cli.AllowInteractiveLogin</_Parameter1>
+      <_Parameter2>$(CliAllowInteractiveLogin)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>AIHappey.Cli.AllowScopeOverride</_Parameter1>
+      <_Parameter2>$(CliAllowScopeOverride)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>AIHappey.Cli.FixedHeaders</_Parameter1>
+      <_Parameter2>$(CliFixedHeaders)</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+</Project>
+

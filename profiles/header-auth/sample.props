@@ -1,0 +1,20 @@
+<Project>
+  <PropertyGroup>
+    <!-- Copy this profile outside the generic repository and replace sample values. -->
+    <CliPackageId>AIHappey.Cli.Header.Sample</CliPackageId>
+    <CliExecutableName>aihappey</CliExecutableName>
+    <CliAuthMode>Header</CliAuthMode>
+    <CliAzureCredentialMode>DefaultAzure</CliAzureCredentialMode>
+    <CliTokenCacheName></CliTokenCacheName>
+    <CliAiBaseUrl>https://ai.aihappey.net/</CliAiBaseUrl>
+    <CliAgentsBaseUrl>https://agents.aihappey.net/</CliAgentsBaseUrl>
+    <!-- Semicolon-separated Name=Value pairs. Do not commit secrets. -->
+    <CliFixedHeaders></CliFixedHeaders>
+    <CliAllowUrlOverride>true</CliAllowUrlOverride>
+    <CliAllowHeaderOverride>true</CliAllowHeaderOverride>
+    <CliAllowBearerOverride>true</CliAllowBearerOverride>
+    <CliAllowInteractiveLogin>false</CliAllowInteractiveLogin>
+    <CliAllowScopeOverride>false</CliAllowScopeOverride>
+  </PropertyGroup>
+</Project>
+
