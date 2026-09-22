@@ -1,6 +1,6 @@
-# AIHappey CLI
+# aihappey cli
 
-A deliberately thin .NET 10 CLI over the existing AIHappey AI and Agents HTTP APIs:
+A deliberately thin .NET 10 CLI over the existing aihappey AI and Agents HTTP APIs:
 
 ```text
 CLI input -> existing HTTP API -> output
