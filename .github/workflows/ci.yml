@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: write
+
 jobs:
   build-test-pack:
     runs-on: windows-latest
@@ -13,21 +16,44 @@ jobs:
         with:
           dotnet-version: 10.0.x
       - name: Test shared core
-        run: dotnet test .\tests\AIHappey.Cli.Tests\AIHappey.Cli.Tests.csproj -c Release
+        run: dotnet test --project .\tests\AIHappey.Cli.Tests\AIHappey.Cli.Tests.csproj -c Release
       - name: Build header profile
         shell: pwsh
         run: |
           $profile = (Resolve-Path .\profiles\header-auth\sample.props).Path
           dotnet build .\src\AIHappey.Cli\AIHappey.Cli.csproj -c Release -p:CliProfile="$profile"
-      - name: Build Azure profile
-        shell: pwsh
-        run: |
-          $profile = (Resolve-Path .\profiles\azure-entra\sample.props).Path
-          dotnet build .\src\AIHappey.Cli\AIHappey.Cli.csproj -c Release -p:CliProfile="$profile"
-      - name: Pack both sample profiles
+      - name: Publish aihappey
         shell: pwsh
         run: |
           $header = (Resolve-Path .\profiles\header-auth\sample.props).Path
-          $azure = (Resolve-Path .\profiles\azure-entra\sample.props).Path
-          dotnet pack .\src\AIHappey.Cli\AIHappey.Cli.csproj -c Release -p:CliProfile="$header" -p:PackageOutputPath="$PWD\artifacts\packages\header"
-          dotnet pack .\src\AIHappey.Cli\AIHappey.Cli.csproj -c Release -p:CliProfile="$azure" -p:PackageOutputPath="$PWD\artifacts\packages\azure"
+          dotnet publish .\src\AIHappey.Cli\AIHappey.Cli.csproj -c Release -p:CliProfile="$header" -o .\artifacts\aihappey
+      - name: Zip executable
+        shell: pwsh
+        run: |
+          Compress-Archive `
+          -Path .\artifacts\aihappey\* `
+          -DestinationPath .\artifacts\aihappey.zip `
+          -Force
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aihappey
+          path: .\artifacts\aihappey.zip
+
+      - name: Update latest release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git tag -f latest
+          git push origin latest --force
+
+          if (gh release view latest 2>$null) {
+            gh release upload latest .\artifacts\aihappey.zip --clobber
+          } else {
+            gh release create latest .\artifacts\aihappey.zip `
+              --title "Latest build" `
+              --notes "Latest build from main."
+          }

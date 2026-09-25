@@ -2,6 +2,9 @@
   "sdk": {
     "version": "10.0.204",
     "rollForward": "latestFeature"
+  },
+  "test": {
+    "runner": "Microsoft.Testing.Platform"
   }
 }
 
