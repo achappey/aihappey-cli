@@ -128,6 +128,31 @@ All endpoint commands share the same thin transport options where applicable:
 
 The compiled profile can disable security-sensitive overrides. Azure authentication happens automatically in an Azure-compiled executable. `--azure` explicitly overrides the compiled choice with `DefaultAzureCredential`; `--azure-login` explicitly overrides it with persistent `InteractiveBrowserCredential`. The two overrides cannot be combined.
 
+### Per-user default headers
+
+Executables compiled for `Header` authentication can read default HTTP headers from a per-user `headers.json` file when the deployment profile enables header overrides:
+
+- Windows: `%LOCALAPPDATA%\aihappey\headers.json`
+- macOS: `~/Library/Application Support/aihappey/headers.json`
+- Linux: `${XDG_CONFIG_HOME:-~/.config}/aihappey/headers.json`
+
+The file is a JSON object whose property names and string values are arbitrary HTTP header names and values. The CLI does not interpret provider names or API-key formats. For example:
+
+```json
+{
+  "X-Api-Key": "your-secret-value",
+  "X-Tenant": "your-tenant"
+}
+```
+
+Header precedence is compiled fixed headers, then per-user `headers.json`, then explicit `--header` values. Matching is case-insensitive, so an explicit `--header "x-api-key: temporary-value"` overrides `X-Api-Key` from the local file. If the file is absent, behavior is unchanged. If it exists but cannot be read, is malformed, is not a JSON object, or contains a non-string value, the command fails with an error that identifies the file path.
+
+The local file is never read or applied by Azure/Entra builds, and it is also ignored when the compiled profile disables header overrides. Values are stored as plaintext: restrict the file and containing directory to the current OS user, and do not commit the file to source control. After configuring it, callers such as Zoo Code can invoke normal endpoint commands without putting secrets in command-line arguments:
+
+```powershell
+aihappey ai responses create --model openai/gpt-5.4-mini --input "Say hi"
+```
+
 ### Persistent Azure browser login
 
 Set these values in an Azure profile to make browser login the build-time default:

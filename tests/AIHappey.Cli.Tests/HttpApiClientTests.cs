@@ -28,6 +28,57 @@ public sealed class HttpApiClientTests
     }
 
     [Fact]
+    public async Task HeaderPrecedenceIsCompiledThenLocalThenExplicit()
+    {
+        var endpoint = EndpointCatalog.All.Single(item => item.Key == "ai.models.list");
+        var profile = TestProfiles.Header(fixedHeaders: new Dictionary<string, string>
+        {
+            ["X-Test"] = "compiled",
+            ["X-Compiled"] = "compiled"
+        });
+        var local = new StubLocalHeaderConfiguration(new Dictionary<string, string>
+        {
+            ["x-test"] = "local",
+            ["X-Local"] = "local"
+        });
+        var client = new HttpApiClient(
+            profile,
+            new HttpClient(new StubHandler()),
+            new HeaderRequestAuthenticator(profile),
+            local);
+
+        using var request = await client.CreateRequestAsync(new ApiInvocation(
+            endpoint, null, new Dictionary<string, string>(), new Dictionary<string, string>(),
+            ["X-Test: explicit"], [], null, null, false, false, [], null), CancellationToken.None);
+
+        Assert.Equal("explicit", request.Headers.GetValues("X-Test").Single());
+        Assert.Equal("compiled", request.Headers.GetValues("X-Compiled").Single());
+        Assert.Equal("local", request.Headers.GetValues("X-Local").Single());
+        Assert.True(local.WasLoaded);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, true)]
+    public async Task LocalHeadersAreNotReadForAzureOrDisabledHeaderOverrides(bool azure, bool allowHeaders)
+    {
+        var endpoint = EndpointCatalog.All.Single(item => item.Key == "ai.models.list");
+        var profile = azure ? TestProfiles.Azure() : TestProfiles.Header(allowHeaders: allowHeaders);
+        var local = new StubLocalHeaderConfiguration(new Dictionary<string, string> { ["X-Test"] = "local" });
+        IRequestAuthenticator authenticator = azure
+            ? new AzureRequestAuthenticator(profile, new StubAzureTokenProvider())
+            : new HeaderRequestAuthenticator(profile);
+        var client = new HttpApiClient(profile, new HttpClient(new StubHandler()), authenticator, local);
+
+        using var request = await client.CreateRequestAsync(new ApiInvocation(
+            endpoint, null, new Dictionary<string, string>(), new Dictionary<string, string>(),
+            [], [], null, null, false, false, [], null), CancellationToken.None);
+
+        Assert.False(local.WasLoaded);
+        Assert.False(request.Headers.Contains("X-Test"));
+    }
+
+    [Fact]
     public async Task CreatesMultipartFileRequest()
     {
         var path = Path.GetTempFileName() + ".mp3";
@@ -97,5 +148,22 @@ public sealed class HttpApiClientTests
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             => Task.FromResult(response?.Invoke(request) ?? new HttpResponseMessage(HttpStatusCode.OK));
+    }
+
+    private sealed class StubLocalHeaderConfiguration(IReadOnlyDictionary<string, string> headers) : ILocalHeaderConfiguration
+    {
+        public bool WasLoaded { get; private set; }
+
+        public Task<IReadOnlyDictionary<string, string>> LoadAsync(CancellationToken cancellationToken)
+        {
+            WasLoaded = true;
+            return Task.FromResult(headers);
+        }
+    }
+
+    private sealed class StubAzureTokenProvider : IAzureTokenProvider
+    {
+        public Task<Azure.Core.AccessToken> GetTokenAsync(AzureCredentialMode mode, IReadOnlyList<string> scopes, CancellationToken cancellationToken)
+            => Task.FromResult(new Azure.Core.AccessToken("token", DateTimeOffset.UtcNow.AddHours(1)));
     }
 }

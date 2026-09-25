@@ -21,7 +21,8 @@ public sealed record ApiInvocation(
 public sealed class HttpApiClient(
     DeploymentProfile profile,
     HttpClient httpClient,
-    IRequestAuthenticator authenticator)
+    IRequestAuthenticator authenticator,
+    ILocalHeaderConfiguration? localHeaderConfiguration = null)
 {
     public async Task<int> SendAsync(ApiInvocation invocation, CancellationToken cancellationToken)
     {
@@ -56,6 +57,12 @@ public sealed class HttpApiClient(
         var request = new HttpRequestMessage(endpoint.Method, uri);
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
         ApplyHeaders(request, profile.FixedHeaders);
+        if (profile.Authentication == AuthenticationMode.Header && profile.AllowHeaderOverride)
+        {
+            var localHeaders = await (localHeaderConfiguration ?? new LocalHeaderConfiguration())
+                .LoadAsync(cancellationToken);
+            ApplyHeaders(request, localHeaders);
+        }
         ApplyInvocationHeaders(request, invocation.Headers);
 
         request.Content = endpoint.Encoding switch
